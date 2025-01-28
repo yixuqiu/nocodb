@@ -22,7 +22,7 @@ const isEditColumn = inject(EditColumnInj, ref(false))
 
 const column = inject(ColumnInj)!
 
-const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+const isForm = inject(IsFormInj)!
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
@@ -33,7 +33,7 @@ const vModel = computed({
   get: () => value,
   set: (val) => {
     localState.value = val
-    if (!parseProp(column.value.meta)?.validate || (val && isMobilePhone(val)) || !val || isSurveyForm.value) {
+    if (!parseProp(column.value.meta)?.validate || (val && isMobilePhone(val)) || !val || isForm.value) {
       emit('update:modelValue', val)
     }
   },
@@ -42,8 +42,6 @@ const vModel = computed({
 const validPhoneNumber = computed(() => vModel.value && isMobilePhone(vModel.value))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
-
-const isForm = inject(IsFormInj)!
 
 const focus: VNodeRef = (el) =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
@@ -62,18 +60,19 @@ watch(
 </script>
 
 <template>
+  <!-- eslint-disable vue/use-v-on-exact -->
   <input
     v-if="!readOnly && editEnabled"
     :ref="focus"
     v-model="vModel"
     class="nc-cell-field w-full outline-none py-1"
-    :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop
     @keydown.right.stop
     @keydown.up.stop
     @keydown.delete.stop
+    @keydown.alt.stop
     @selectstart.capture.stop
     @mousedown.stop
   />
@@ -82,7 +81,7 @@ watch(
 
   <a
     v-else-if="validPhoneNumber"
-    class="py-1 underline hover:opacity-75 inline-block nc-cell-field-link"
+    class="py-1 underline inline-block nc-cell-field-link"
     :href="`tel:${vModel}`"
     target="_blank"
     rel="noopener noreferrer"
